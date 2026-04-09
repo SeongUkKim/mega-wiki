@@ -1,2 +1,6 @@
 mega-wiki:
   storage: memory
+  slack:
+    enabled: false
+  gemini:
+    enabled: false

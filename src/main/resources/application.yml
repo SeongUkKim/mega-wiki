@@ -6,11 +6,21 @@ server:
 mega-wiki:
   storage: notion
   title: Mega-Wiki
-  slogan: "AI가 씨앗을 심고, 동료가 함께 키우는 우리만의 지식 나무"
+  slogan: "AI plants the first answer and teammates refine it into lasting knowledge."
   mission-track: Transform
-  ai-provider: "Gemini 2.5 Flash adapter"
+  ai-provider: "Gemini 2.5 Flash"
   notion:
     api-token: ${NOTION_API_TOKEN:}
     pages-data-source-id: ${NOTION_PAGES_DATA_SOURCE_ID:}
     questions-data-source-id: ${NOTION_QUESTIONS_DATA_SOURCE_ID:}
     api-version: ${NOTION_API_VERSION:2025-09-03}
+  slack:
+    enabled: ${SLACK_ENABLED:false}
+    bot-token: ${SLACK_BOT_TOKEN:}
+    signing-secret: ${SLACK_SIGNING_SECRET:}
+    bot-user-id: ${SLACK_BOT_USER_ID:}
+  gemini:
+    enabled: ${GEMINI_ENABLED:false}
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
+    temperature: ${GEMINI_TEMPERATURE:0.2}
