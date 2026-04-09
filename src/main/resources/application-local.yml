@@ -4,3 +4,5 @@ mega-wiki:
     enabled: false
   gemini:
     enabled: false
+  snowflake:
+    enabled: false
