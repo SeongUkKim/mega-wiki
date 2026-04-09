@@ -6,7 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class SlackProperties {
 
     private boolean enabled;
+    private String mode = "http";
     private String botToken = "";
+    private String appToken = "";
     private String signingSecret = "";
     private String botUserId = "";
 
@@ -16,6 +18,22 @@ public class SlackProperties {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
+    public String getAppToken() {
+        return appToken;
+    }
+
+    public void setAppToken(String appToken) {
+        this.appToken = appToken;
     }
 
     public String getBotToken() {

@@ -19,6 +19,9 @@ replay_pid*
 .project
 .classpath
 
+# Environment
+.env
+
 # OS
 .DS_Store
 Thumbs.db
