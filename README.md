@@ -1,37 +1,37 @@
 # Mega-Wiki
 
-Mega-Wiki´Â Slack¿¡¼­ ¹ß»ıÇÑ Áú¹®À» Àç»ç¿ë °¡´ÉÇÑ ÆÀ Áö½ÄÀ¸·Î ÀüÈ¯ÇÏ´Â Spring Boot ¹é¿£µåÀÔ´Ï´Ù. Slack¿¡¼­ º¿À» ¸à¼ÇÇÏ¸é Áú¹® Èå¸§ÀÌ ½ÃÀÛµÇ°í, Gemini°¡ ´äº¯ ÃÊ¾ÈÀ» »ı¼ºÇÑ µÚ, °á°ú¸¦ Notion ÀúÀå¼Ò¿¡ ±â·ÏÇÕ´Ï´Ù.
+Mega-WikiëŠ” Slackì—ì„œ ë°œìƒí•œ ì‚¬ë‚´ì˜ ì§ˆë¬¸ì„ ì§€ì‹ ìì‚°ìœ¼ë¡œ ë³€í™˜í•˜ëŠ” Spring Boot ë°±ì—”ë“œì…ë‹ˆë‹¤. Slackì—ì„œ ì§ˆë¬¸ì„ í•˜ë©´ ì „ì²´ íë¦„ì´ ì‹œì‘ë˜ê³ , Geminiê°€ ë‹µë³€ ì´ˆì•ˆì„ ìƒì„±í•œ í›„, ê²°ê³¼ë¥¼ Notion ì €ì¥ì†Œì— ì €ì¥í•©ë‹ˆë‹¤.
 
-## ÇöÀç ±¸ÇöµÈ ±â´É
+## í˜„ì¬ êµ¬í˜„ëœ ê¸°ëŠ¥ ëª©ë¡
 
-- Slack Events API¿ë `POST /api/integrations/slack/events`
-- Slack ¿äÃ» ¼­¸í °ËÁõ°ú Áßº¹ ÀÌº¥Æ® ¹æÁö
-- `app_mention` ÀÌº¥Æ® Ã³¸® ¹× Slack ½º·¹µå ´ä±Û Àü¼Û
-- Gemini `generateContent` ¿¬µ¿
-- Gemini È£Ãâ ½ÇÆĞ ¶Ç´Â ºñÈ°¼ºÈ­ ½Ã rule-based ´äº¯ »ı¼º±â·Î fallback
-- Notion µ¥ÀÌÅÍ¼Ò½º ÀÚµ¿ Å½»ö°ú ½ºÅ°¸¶ ÀÚµ¿ º¸Á¤
-- Notion ±â¹İ `KnowledgePageRepository`, `QuestionThreadRepository`¸¦ ÅëÇÑ ¿µ¼Ó ÀúÀå
-- Notion, Gemini ÀÚ°İ Áõ¸í ¾øÀÌ °³¹ß °¡´ÉÇÑ ·ÎÄÃ ¸Ş¸ğ¸® ÇÁ·ÎÇÊ
+- Slack Events APIì˜ `POST /api/integrations/slack/events`
+- Slack ìš”ì²­ ì„œëª… ê²€ì¦ê³¼ ì¤‘ë³µ ì´ë²¤íŠ¸ ë°©ì§€
+- `app_mention` ì´ë²¤íŠ¸ ì²˜ë¦¬ ë° Slack ìŠ¤ë ˆë“œì— ì‘ë‹µ ê²Œì‹œ
+- Gemini `generateContent` ì—°ë™
+- Gemini í˜¸ì¶œ ì‹¤íŒ¨ ë˜ëŠ” ë¹„í™œì„±í™” ì‹œ rule-based ë‹µë³€ ìƒì„±ê¸°ë¡œ fallback
+- Notion ë°ì´í„°ì†ŒìŠ¤ ìë™ íƒìƒ‰ê³¼ ìŠ¤í‚¤ë§ˆ ìë™ ìƒì„±
+- Notion ê¸°ë°˜ `KnowledgePageRepository`, `QuestionThreadRepository`ë¥¼ í†µí•œ ì˜ì† ê³„ì¸µ
+- Notion, Gemini ìê²© ì¦ëª… ì—†ì´ ê°œë°œ ê°€ëŠ¥í•œ ì¸ë©”ëª¨ë¦¬ ì €ì¥ì†Œ
 
-## ÇÊ¼ö È¯°æ º¯¼ö
+## í•„ìˆ˜ í™˜ê²½ ë³€ìˆ˜
 
 ### Notion
 
-±âº»°ªÀ¸·Î´Â ¾Æ·¡ ÀÌ¸§ÀÇ µ¥ÀÌÅÍ¼Ò½º¸¦ ÀÚµ¿ Å½»öÇÕ´Ï´Ù.
+ê¸°ë³¸ì ìœ¼ë¡œ ì•„ë˜ ì´ë¦„ì˜ ë°ì´í„°ì†ŒìŠ¤ë¥¼ ìë™ íƒìƒ‰í•©ë‹ˆë‹¤.
 
 - `MegaWiki Pages`
 - `MegaWiki Questions`
 
-ÇÊ¼ö:
+í•„ìˆ˜:
 - `NOTION_API_TOKEN`
 
-¼±ÅÃ:
+ì„ íƒ:
 - `NOTION_PAGES_DATA_SOURCE_ID`
 - `NOTION_QUESTIONS_DATA_SOURCE_ID`
 - `NOTION_PAGES_DATA_SOURCE_NAME`
 - `NOTION_QUESTIONS_DATA_SOURCE_NAME`
 
-Áï, »ç¶÷ÀÌ Notion¿¡¼­ µ¥ÀÌÅÍº£ÀÌ½º¸¦ ¸¸µé°í integration¸¸ ¿¬°áÇØµÎ¸é º¸ÅëÀº `NOTION_API_TOKEN`¸¸ ³Ö¾îµµ µË´Ï´Ù. ¸í½ÃÀûÀÎ data source id¸¦ ÁÖ¸é ÀÚµ¿ Å½»öº¸´Ù ¿ì¼±ÇÕ´Ï´Ù.
+ì¦‰, ë¨¼ì € Notionì—ì„œ ë°ì´í„°ë² ì´ìŠ¤ë¥¼ ë§Œë“¤ê³  integrationì„ ì—°ê²°í•´ë‘ë©´ ê¸°ë³¸ì ìœ¼ë¡œ `NOTION_API_TOKEN`ë§Œ ë„£ìœ¼ë©´ ë©ë‹ˆë‹¤. ì§ì ‘ì ì¸ data source idë¥¼ ì£¼ë©´ ìë™ íƒìƒ‰ë³´ë‹¤ ìš°ì„ í•©ë‹ˆë‹¤.
 
 ### Slack
 
@@ -39,48 +39,48 @@ Mega-Wiki´Â Slack¿¡¼­ ¹ß»ıÇÑ Áú¹®À» Àç»ç¿ë °¡´ÉÇÑ ÆÀ Áö½ÄÀ¸·Î ÀüÈ¯ÇÏ´Â Spring Bo
 - `SLACK_BOT_TOKEN`
 - `SLACK_SIGNING_SECRET`
 - `SLACK_BOT_USER_ID`
-  ÇâÈÄ ¸à¼Ç ½Äº° ·ÎÁ÷ È®Àå¿ëÀÌ¸ç ÇöÀç´Â ¼±ÅÃ°ªÀÔ´Ï´Ù.
+  ë´‡ì˜ ë©¤ë²„ ì‹ë³„ì í™•ì¸ì´ í•„ìš”í•˜ë©° ì„ íƒì  í•­ëª©ì…ë‹ˆë‹¤.
 
 ### Gemini
 
 - `GEMINI_ENABLED=true`
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL=gemini-2.5-flash`
-  ÇÊ¿ä ½Ã ´Ù¸¥ ¸ğµ¨·Î º¯°æÇÒ ¼ö ÀÖ½À´Ï´Ù.
+  í•„ìš” ì‹œ ë‹¤ë¥¸ ëª¨ë¸ë¡œ ë³€ê²½í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
 - `GEMINI_TEMPERATURE=0.2`
-  ÇÊ¿ä ½Ã »ı¼º ¼ºÇâ Á¶Á¤¿¡ »ç¿ëÇÕ´Ï´Ù.
+  í•„ìš” ì‹œ ìƒì„± ì˜¨ë„ë¥¼ ì¡°ì •í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
 
-## Notion ÁØºñ ¹æ¹ı
+## Notion ì¤€ë¹„ ë‹¨ê³„
 
-1. `MegaWiki Pages`, `MegaWiki Questions` µ¥ÀÌÅÍº£ÀÌ½º¸¦ ¸¸µì´Ï´Ù.
-2. µÎ µ¥ÀÌÅÍº£ÀÌ½º¿¡ Notion integrationÀ» ¿¬°áÇÕ´Ï´Ù.
-3. ¾ÖÇÃ¸®ÄÉÀÌ¼Ç ½ÇÇà ½Ã Mega-Wiki°¡ µ¥ÀÌÅÍ¼Ò½º¸¦ ÀÚµ¿ Å½»öÇÏ°í ½ºÅ°¸¶¸¦ ÄÚµå ±âÁØÀ¸·Î º¸Á¤ÇÕ´Ï´Ù.
+1. `MegaWiki Pages`, `MegaWiki Questions` ë°ì´í„°ë² ì´ìŠ¤ë¥¼ ìƒì„±í•©ë‹ˆë‹¤.
+2. ê° ë°ì´í„°ë² ì´ìŠ¤ì— Notion integrationì„ ì—°ê²°í•©ë‹ˆë‹¤.
+3. ì–´í”Œë¦¬ì¼€ì´ì…˜ ì‹œì‘ ì‹œ Mega-Wikiê°€ ë°ì´í„°ì†ŒìŠ¤ë¥¼ ìë™ íƒìƒ‰í•˜ê³  ìŠ¤í‚¤ë§ˆë¥¼ ìë™ ìƒì„±í•˜ì—¬ ì´ˆê¸°í™”í•©ë‹ˆë‹¤.
 
-## Slack ¾Û ¼³Á¤
+## Slack ë´‡ ì„¤ì •
 
-1. Event Subscriptions¸¦ È°¼ºÈ­ÇÕ´Ï´Ù.
-2. Request URLÀ» ¹èÆ÷µÈ Mega-Wiki ¼­¹öÀÇ `/api/integrations/slack/events`·Î ¼³Á¤ÇÕ´Ï´Ù.
-3. º¿ ÀÌº¥Æ®·Î `app_mention`À» ±¸µ¶ÇÕ´Ï´Ù.
-4. ÃÖ¼ÒÇÑ `app_mentions:read`, `chat:write` ½ºÄÚÇÁ¸¦ Ãß°¡ÇÕ´Ï´Ù.
-5. ¾ÛÀ» ¿öÅ©½ºÆäÀÌ½º¿¡ ¼³Ä¡ÇÏ°Å³ª Àç¼³Ä¡ÇÕ´Ï´Ù.
+1. Event Subscriptionsì„ í™œì„±í™”í•©ë‹ˆë‹¤.
+2. Request URLì„ ë°°í¬ëœ Mega-Wiki ì„œë²„ì˜ `/api/integrations/slack/events`ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
+3. ë´‡ ì´ë²¤íŠ¸ì— `app_mention`ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
+4. ìµœì†Œí•œ `app_mentions:read`, `chat:write` ìŠ¤ì½”í”„ë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
+5. í•´ë‹¹ ì›Œí¬ìŠ¤í˜ì´ìŠ¤ì— ì„¤ì¹˜í•˜ê±°ë‚˜ ì¬ì„¤ì¹˜í•©ë‹ˆë‹¤.
 
-## ·ÎÄÃ ½ÇÇà
+## ë¡œì»¬ ì‹¤í–‰
 
-·ÎÄÃ ÇÁ·ÎÇÊÀº ¸Ş¸ğ¸® ÀúÀå¼Ò¸¦ »ç¿ëÇÏ°í ¿ÜºÎ ¿¬µ¿À» ºñÈ°¼ºÈ­ÇÕ´Ï´Ù.
+ë¡œì»¬ í”„ë¡œíŒŒì¼ì€ ë©”ëª¨ë¦¬ ì €ì¥ì†Œë¥¼ ì‚¬ìš©í•˜ê³  ì™¸ë¶€ ì—°ë™ì„ ë¹„í™œì„±í™”í•©ë‹ˆë‹¤.
 
 ```powershell
 .\gradlew.bat bootRun --args="--spring.profiles.active=local"
 ```
 
-½ÇÁ¦ Slack, Gemini, Notion ¿¬µ¿±îÁö È®ÀÎÇÏ·Á¸é ·ÎÄÃ ÇÁ·ÎÇÊ ¾øÀÌ ½ÇÇàÇÏ°í, ½ÇÁ¦ ÀÚ°İ Áõ¸íÀ» È¯°æ º¯¼ö·Î ÁÖÀÔÇÏ¸é µË´Ï´Ù.
+ì‹¤ì œ Slack, Gemini, Notion ì—°ë™ê¹Œì§€ í™•ì¸í•˜ë ¤ë©´ í•´ë‹¹ ì„œë¹„ìŠ¤ì— ì•±ì„ ì„¤ì •í•˜ê³ , ì ì ˆí•œ ìê²© ì¦ëª…ì„ í™˜ê²½ ë³€ìˆ˜ë¡œ ì„¤ì •í•˜ë©´ ë©ë‹ˆë‹¤.
 
-## Å×½ºÆ®
+## í…ŒìŠ¤íŠ¸
 
 ```powershell
 .\gradlew.bat test --no-daemon
 ```
 
-## API ¿ä¾à
+## API ëª©ë¡
 
 - `GET /api/dashboard`
 - `GET /api/pages`
@@ -91,8 +91,172 @@ Mega-Wiki´Â Slack¿¡¼­ ¹ß»ıÇÑ Áú¹®À» Àç»ç¿ë °¡´ÉÇÑ ÆÀ Áö½ÄÀ¸·Î ÀüÈ¯ÇÏ´Â Spring Bo
 - `POST /api/questions`
 - `POST /api/integrations/slack/events`
 
-## Âü°í »çÇ×
+## ìš´ì˜ ì°¸ê³ 
 
-- Slack ÀÌº¥Æ®´Â Áï½Ã ÀÀ´äÇÑ µÚ ¹é±×¶ó¿îµå ÀÛ¾÷À¸·Î Ã³¸®ÇÕ´Ï´Ù.
-- Gemini°¡ ºñÈ°¼ºÈ­µÇ¾î ÀÖ°Å³ª È£Ãâ¿¡ ½ÇÆĞÇÏ¸é ±âÁ¸ rule-based ´äº¯ »ı¼º±â·Î ÀÚµ¿ ÀüÈ¯ÇÕ´Ï´Ù.
-- ÃÖÁ¾ Áö½Ä ÆäÀÌÁö¿Í Áú¹® ¾ÆÄ«ÀÌºêÀÇ ½Ã½ºÅÛ ¿Àºê ·¹ÄÚµå´Â NotionÀÔ´Ï´Ù.
+- Slack ì´ë²¤íŠ¸ëŠ” ì‘ë‹µ ì´í›„ì— ë³„ë„ì˜ ë°±ê·¸ë¼ìš´ë“œ ì‘ì—…ìœ¼ë¡œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+- Geminiê°€ ë¹„í™œì„±í™”ë˜ì–´ ìˆê±°ë‚˜ í˜¸ì¶œì— ì‹¤íŒ¨í•˜ë©´ ë‚´ì¥ rule-based ë‹µë³€ ìƒì„±ê¸°ë¡œ ìë™ ì „í™˜í•©ë‹ˆë‹¤.
+- í˜„ì¬ ì§€ì‹ í˜ì´ì§€ì˜ ê³µì‹ ì•„ì¹´ì´ë¸Œ ì‹œìŠ¤í…œ ì˜¤ë¸Œ ë ˆì½”ë“œëŠ” Notionì…ë‹ˆë‹¤.
+
+---
+
+## Snowflake Cortex Search ì—°ë™ (FR-05)
+
+Snowflake Cortex Search APIë¥¼ í†µí•´ ì‚¬ë‚´ ë¬¸ì„œ ê¸°ë°˜ AI ë‹µë³€ì„ ì œê³µí•˜ëŠ” ê¸°ëŠ¥ì…ë‹ˆë‹¤.
+
+### ì•„í‚¤í…ì²˜
+
+```
+Slack Bot (@ë©˜ì…˜) â†’ Back-end Server â†’ Snowflake Cortex Search API â†’ Slack Thread ì‘ë‹µ
+```
+
+`SNOWFLAKE_ENABLED=true`ì´ë©´ Slack ì§ˆë¬¸ì´ Snowflake Cortex APIë¡œ ì „ë‹¬ë˜ê³ , `false`ì´ë©´ ê¸°ì¡´ Gemini ê²½ë¡œë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
+
+### Snowflake í™˜ê²½ ë³€ìˆ˜
+
+| ë³€ìˆ˜ | í•„ìˆ˜ | ê¸°ë³¸ê°’ | ì„¤ëª… |
+|------|------|--------|------|
+| `SNOWFLAKE_ENABLED` | N | `false` | Snowflake ì—°ë™ í™œì„±í™” |
+| `SNOWFLAKE_API_URL` | N | `https://mm0292ev17.execute-api.ap-northeast-2.amazonaws.com` | Cortex Search API ì—”ë“œí¬ì¸íŠ¸ |
+| `SNOWFLAKE_SCORE_THRESHOLD` | N | `-7.0` | ê´€ë ¨ë„ ì ìˆ˜ ì„ê³„ê°’ (ì´í•˜ì´ë©´ "ë“±ë¡ë˜ì§€ ì•Šì€ ì§ˆë¬¸") |
+| `SNOWFLAKE_TIMEOUT` | N | `120` | API ì‘ë‹µ ëŒ€ê¸° ì‹œê°„ (ì´ˆ) |
+
+### Snowflake Cortex Search API ìŠ¤í™
+
+**ìš”ì²­:**
+```bash
+curl -X POST https://mm0292ev17.execute-api.ap-northeast-2.amazonaws.com \
+  -H "Content-Type: application/json" \
+  -d '{"question": "ëª…í•¨ ì‹ ì²­í•˜ëŠ” ë°©ë²•ì´ ê¶ê¸ˆí•´"}'
+```
+
+**ì‘ë‹µ:**
+```json
+{
+  "title": "8. ëª…í•¨ ì‹ ì²­í•˜ê¸°",
+  "answer": "ê·¸ë£¹ì›¨ì–´ ê¸°ì•ˆ ì–‘ì‹ ì¤‘ ëª…í•¨ì‹ ì²­ì„œ ì–‘ì‹ì„ í†µí•´ ê¸°ì•ˆí•´ ì£¼ì„¸ìš”.",
+  "reranker_score": -3.212328
+}
+```
+
+- `reranker_score >= -7.0`: ê´€ë ¨ ë¬¸ì„œ ìˆìŒ â†’ ë‹µë³€ ë°˜í™˜
+- `reranker_score < -7.0`: ê´€ë ¨ ë¬¸ì„œ ì—†ìŒ â†’ "ë“±ë¡ë˜ì–´ ìˆì§€ ì•Šì€ ì§ˆë¬¸" ë°˜í™˜
+- ì‘ë‹µ ì‹œê°„: ìµœëŒ€ 120ì´ˆ
+- ì–¸ì–´: í•œêµ­ì–´ ì…ë ¥ ê¶Œì¥
+- í˜„ì¬ DB: 9ê°€ì§€ ì£¼ì œ (IT ì¥ë¹„, ë²„ë””, PoPs, ì—ìŠ¤í¬, ê·¸ë£¹ì›¨ì–´, ì´ë©”ì¼ ì„œëª…, ëª…í•¨, í”„ë¦°í„°/ìŠ¤ìºë„ˆ, ì¸ì‚¬ì¹´ë“œ)
+
+---
+
+## Slack Socket Mode
+
+ê³µê°œ URL ì—†ì´ WebSocketìœ¼ë¡œ Slackì— ì—°ê²°í•˜ëŠ” ë°©ì‹ì…ë‹ˆë‹¤. ë¡œì»¬ ê°œë°œ í™˜ê²½ì—ì„œ ngrok ì—†ì´ ë°”ë¡œ í…ŒìŠ¤íŠ¸ ê°€ëŠ¥í•©ë‹ˆë‹¤.
+
+### Socket Mode vs HTTP Webhook
+
+| | HTTP Webhook (`mode: http`) | Socket Mode (`mode: socket`) |
+|---|---|---|
+| ì—°ê²° ë°©ì‹ | Slack â†’ ì„œë²„ HTTP POST | ì„œë²„ â†’ Slack WebSocket |
+| ê³µê°œ URL | í•„ìš” (ë°°í¬ or ngrok) | ë¶ˆí•„ìš” |
+| í•„ìš” í† í° | `SLACK_SIGNING_SECRET` | `SLACK_APP_TOKEN` (`xapp-...`) |
+| ìš©ë„ | ìš´ì˜ í™˜ê²½ | ë¡œì»¬ ê°œë°œ/í…ŒìŠ¤íŠ¸ |
+
+### Socket Mode ì„¤ì •
+
+#### 1. Slack App ì„¤ì •
+
+1. [api.slack.com/apps](https://api.slack.com/apps) â†’ ì•± ì„ íƒ
+2. **App Home** â†’ Display Name ì„¤ì • (ì˜ˆ: `Mega-Wiki Bot`)
+3. **OAuth & Permissions** â†’ Bot Token Scopes:
+   - `app_mentions:read`
+   - `chat:write`
+4. **Install to Workspace** â†’ Bot Token (`xoxb-...`) ë³µì‚¬
+5. **Socket Mode** â†’ **Enable Socket Mode** ì¼œê¸°
+6. **Basic Information** â†’ App-Level Tokens â†’ **Generate Token**:
+   - Token Name: `socket-mode`
+   - Scope: `connections:write`
+   - `xapp-...` í† í° ë³µì‚¬
+7. **Event Subscriptions** â†’ **Enable Events** ì¼œê¸°
+8. **Subscribe to bot events** â†’ `app_mention` ì¶”ê°€ â†’ **Save Changes**
+9. ë´‡ì„ í…ŒìŠ¤íŠ¸í•  ì±„ë„ì— ì´ˆëŒ€: `/invite @Mega-Wiki Bot`
+
+#### 2. í™˜ê²½ ë³€ìˆ˜
+
+```bash
+# .env íŒŒì¼
+SLACK_ENABLED=true
+SLACK_MODE=socket
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_APP_TOKEN=xapp-your-app-level-token
+SLACK_SIGNING_SECRET=your-signing-secret
+SLACK_BOT_USER_ID=U_YOUR_BOT_ID
+SNOWFLAKE_ENABLED=true
+GEMINI_ENABLED=false
+```
+
+Bot User ID ì¡°íšŒ:
+```bash
+curl -s -X POST https://slack.com/api/auth.test \
+  -H "Authorization: Bearer xoxb-your-bot-token" \
+  -H "Content-Type: application/json" | python3 -m json.tool
+```
+
+#### 3. ì„œë²„ ì‹¤í–‰
+
+```bash
+export $(cat .env | grep -v '^#' | xargs)
+./gradlew bootRun --args='--spring.profiles.active=snowflake'
+```
+
+ë¡œê·¸ì— ë‹¤ìŒì´ ì¶œë ¥ë˜ë©´ ì—°ê²° ì„±ê³µ:
+```
+New session is open (session id: ...)
+Slack Socket Mode connected successfully
+```
+
+#### 4. í…ŒìŠ¤íŠ¸
+
+Slack ì±„ë„ì—ì„œ:
+```
+@Mega-Wiki Bot ëª…í•¨ ì‹ ì²­í•˜ëŠ” ë°©ë²•ì´ ê¶ê¸ˆí•´
+```
+
+### Slack ì¶”ê°€ í™˜ê²½ ë³€ìˆ˜
+
+| ë³€ìˆ˜ | í•„ìˆ˜ | ê¸°ë³¸ê°’ | ì„¤ëª… |
+|------|------|--------|------|
+| `SLACK_MODE` | N | `http` | `http` (Webhook) ë˜ëŠ” `socket` (Socket Mode) |
+| `SLACK_APP_TOKEN` | Y* | | App-Level Token (`xapp-...`) |
+
+\* Socket Mode ì‚¬ìš© ì‹œ í•„ìˆ˜
+
+---
+
+## Spring Profiles
+
+| Profile | ì €ì¥ì†Œ | Slack | AI ë‹µë³€ | ìš©ë„ |
+|---------|--------|-------|---------|------|
+| (ê¸°ë³¸) | Notion | HTTP Webhook | Gemini | ìš´ì˜ |
+| `local` | ì¸ë©”ëª¨ë¦¬ | ë¹„í™œì„±í™” | ë¹„í™œì„±í™” | ë¡œì»¬ ê°œë°œ |
+| `snowflake` | ì¸ë©”ëª¨ë¦¬ | Socket Mode | Snowflake Cortex | Snowflake í…ŒìŠ¤íŠ¸ |
+
+## í”„ë¡œì íŠ¸ êµ¬ì¡°
+
+```
+src/main/java/com/megawiki/
+â”œâ”€â”€ MegaWikiApplication.java
+â”œâ”€â”€ config/                           # ì„¤ì • (SlackProperties, SnowflakeProperties, ...)
+â”œâ”€â”€ domain/                           # ë„ë©”ì¸ ëª¨ë¸ (KnowledgePage, QuestionThread)
+â”œâ”€â”€ integration/
+â”‚   â”œâ”€â”€ slack/                        # Slack ì—°ë™
+â”‚   â”‚   â”œâ”€â”€ SlackEventController.java # HTTP Webhook ì—”ë“œí¬ì¸íŠ¸
+â”‚   â”‚   â”œâ”€â”€ SlackEventService.java    # ì´ë²¤íŠ¸ ì²˜ë¦¬ (Snowflake/Gemini ë¶„ê¸°)
+â”‚   â”‚   â”œâ”€â”€ SlackSocketModeRunner.java# Socket Mode WebSocket ì—°ê²°
+â”‚   â”‚   â”œâ”€â”€ SlackApiClient.java       # Slack API í˜¸ì¶œ
+â”‚   â”‚   â”œâ”€â”€ SlackSignatureVerifier.java
+â”‚   â”‚   â””â”€â”€ SlackEventDeduplicator.java
+â”‚   â””â”€â”€ snowflake/                    # Snowflake ì—°ë™
+â”‚       â”œâ”€â”€ SnowflakeCortexClient.java# Cortex Search API í˜¸ì¶œ
+â”‚       â””â”€â”€ SnowflakeCortexResponse.java
+â”œâ”€â”€ repository/                       # ë°ì´í„° ì €ì¥ì†Œ (Notion/InMemory)
+â”œâ”€â”€ service/                          # ë¹„ì¦ˆë‹ˆìŠ¤ ë¡œì§
+â””â”€â”€ web/                              # REST API ì»¨íŠ¸ë¡¤ëŸ¬
+```
