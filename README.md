@@ -1,17 +1,18 @@
-# Mega-Wiki
+﻿# Mega-Wiki
 
-Mega-Wiki is a Spring Boot backend that turns Slack questions into reusable team knowledge. A Slack app mention triggers the question flow, Gemini drafts the answer, and the result is stored in Notion through the existing repositories.
+Mega-Wiki는 Slack에서 발생한 질문을 재사용 가능한 팀 지식으로 전환하는 Spring Boot 백엔드입니다. Slack에서 봇을 멘션하면 질문 흐름이 시작되고, Gemini가 답변 초안을 생성한 뒤, 결과를 기존 Notion 저장소에 기록합니다.
 
-## What is implemented
+## 현재 구현된 기능
 
-- `POST /api/integrations/slack/events` for Slack Events API
-- Slack request signature verification and duplicate event protection
-- `app_mention` event processing with threaded Slack replies
-- Gemini `generateContent` integration with rule-based fallback when Gemini is disabled or fails
-- Notion-backed `KnowledgePageRepository` and `QuestionThreadRepository` reuse for durable storage
-- Local memory profile for development without Notion or Gemini credentials
+- Slack Events API용 `POST /api/integrations/slack/events`
+- Slack 요청 서명 검증과 중복 이벤트 방지
+- `app_mention` 이벤트 처리 및 Slack 스레드 답글 전송
+- Gemini `generateContent` 연동
+- Gemini 호출 실패 또는 비활성화 시 rule-based 답변 생성기로 fallback
+- Notion 기반 `KnowledgePageRepository`, `QuestionThreadRepository`를 통한 영속 저장
+- Notion, Gemini 자격 증명 없이 개발 가능한 로컬 메모리 프로필
 
-## Required environment variables
+## 필수 환경 변수
 
 ### Notion
 
@@ -24,40 +25,43 @@ Mega-Wiki is a Spring Boot backend that turns Slack questions into reusable team
 - `SLACK_ENABLED=true`
 - `SLACK_BOT_TOKEN`
 - `SLACK_SIGNING_SECRET`
-- `SLACK_BOT_USER_ID` optional for future mention-specific behavior
+- `SLACK_BOT_USER_ID`
+  향후 멘션 식별 로직 확장용이며 현재는 선택값입니다.
 
 ### Gemini
 
 - `GEMINI_ENABLED=true`
 - `GEMINI_API_KEY`
-- `GEMINI_MODEL=gemini-2.5-flash` optional
-- `GEMINI_TEMPERATURE=0.2` optional
+- `GEMINI_MODEL=gemini-2.5-flash`
+  필요 시 다른 모델로 변경할 수 있습니다.
+- `GEMINI_TEMPERATURE=0.2`
+  필요 시 생성 성향 조정에 사용합니다.
 
-## Slack app setup
+## Slack 앱 설정
 
-1. Enable Event Subscriptions.
-2. Set the Request URL to `/api/integrations/slack/events` on your deployed Mega-Wiki server.
-3. Subscribe to the `app_mention` bot event.
-4. Add bot scopes at least `app_mentions:read` and `chat:write`.
-5. Install or reinstall the app to the workspace.
+1. Event Subscriptions를 활성화합니다.
+2. Request URL을 배포된 Mega-Wiki 서버의 `/api/integrations/slack/events`로 설정합니다.
+3. 봇 이벤트로 `app_mention`을 구독합니다.
+4. 최소한 `app_mentions:read`, `chat:write` 스코프를 추가합니다.
+5. 앱을 워크스페이스에 설치하거나 재설치합니다.
 
-## Run locally
+## 로컬 실행
 
-Local profile keeps storage in memory and disables external integrations.
+로컬 프로필은 메모리 저장소를 사용하고 외부 연동을 비활성화합니다.
 
 ```powershell
 .\gradlew.bat bootRun --args="--spring.profiles.active=local"
 ```
 
-To run the full integration profile, provide real Slack, Gemini, and Notion credentials and start without the local profile.
+실제 Slack, Gemini, Notion 연동까지 확인하려면 로컬 프로필 없이 실행하고, 실제 자격 증명을 환경 변수로 주입하면 됩니다.
 
-## Test
+## 테스트
 
 ```powershell
 .\gradlew.bat test --no-daemon
 ```
 
-## API summary
+## API 요약
 
 - `GET /api/dashboard`
 - `GET /api/pages`
@@ -68,8 +72,8 @@ To run the full integration profile, provide real Slack, Gemini, and Notion cred
 - `POST /api/questions`
 - `POST /api/integrations/slack/events`
 
-## Notes
+## 참고 사항
 
-- Slack processing is acknowledged immediately and handled on a background task executor.
-- If Gemini is disabled or its call fails, Mega-Wiki falls back to the existing rule-based answer generator.
-- Notion remains the system of record for knowledge pages and archived question threads.
+- Slack 이벤트는 즉시 응답한 뒤 백그라운드 작업으로 처리합니다.
+- Gemini가 비활성화되어 있거나 호출에 실패하면 기존 rule-based 답변 생성기로 자동 전환합니다.
+- 최종 지식 페이지와 질문 아카이브의 시스템 오브 레코드는 Notion입니다.
