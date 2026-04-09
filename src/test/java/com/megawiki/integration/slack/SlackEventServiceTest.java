@@ -11,6 +11,7 @@ import com.megawiki.domain.KnowledgePage;
 import com.megawiki.domain.KnowledgeSourceType;
 import com.megawiki.domain.KnowledgeStatus;
 import com.megawiki.domain.QuestionThread;
+import com.megawiki.config.SnowflakeProperties;
 import com.megawiki.repository.KnowledgePageRepository;
 import com.megawiki.service.QuestionWorkflowService;
 import java.time.LocalDateTime;
@@ -42,12 +43,17 @@ class SlackEventServiceTest {
 
     @BeforeEach
     void setUp() {
+        SnowflakeProperties snowflakeProperties = new SnowflakeProperties();
+        snowflakeProperties.setEnabled(false);
+
         slackEventService = new SlackEventService(
                 questionWorkflowService,
                 knowledgePageRepository,
                 slackApiClient,
                 taskExecutor,
-                new SlackEventDeduplicator()
+                new SlackEventDeduplicator(),
+                null,
+                snowflakeProperties
         );
     }
 
@@ -171,6 +177,6 @@ class SlackEventServiceTest {
         slackEventService.acceptEvent(objectMapper.readTree(payload));
 
         verify(questionWorkflowService, never()).submitQuestion(eq("U123"), eq("C123"), eq(""), eq(KnowledgeSourceType.SLACK_THREAD));
-        verify(slackApiClient).postThreadReply(eq("C123"), eq("1710000000.000100"), contains("Please add a question"));
+        verify(slackApiClient).postThreadReply(eq("C123"), eq("1710000000.000100"), contains("질문을 입력해 주세요"));
     }
 }
