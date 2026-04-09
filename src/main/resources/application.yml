@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: mega-wiki
+server:
+  shutdown: graceful
+mega-wiki:
+  storage: notion
+  title: Mega-Wiki
+  slogan: "AI가 씨앗을 심고, 동료가 함께 키우는 우리만의 지식 나무"
+  mission-track: Transform
+  ai-provider: "Gemini 2.5 Flash adapter"
+  notion:
+    api-token: ${NOTION_API_TOKEN:}
+    pages-data-source-id: ${NOTION_PAGES_DATA_SOURCE_ID:}
+    questions-data-source-id: ${NOTION_QUESTIONS_DATA_SOURCE_ID:}
+    api-version: ${NOTION_API_VERSION:2025-09-03}
