@@ -3,10 +3,15 @@ package com.megawiki.repository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.megawiki.config.NotionProperties;
 import jakarta.annotation.PostConstruct;
+import java.net.http.HttpClient;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
@@ -23,6 +28,7 @@ public class NotionApiClient {
         this.notionProperties = notionProperties;
         this.restClient = restClientBuilder
                 .baseUrl("https://api.notion.com/v1")
+                .requestFactory(new JdkClientHttpRequestFactory(HttpClient.newHttpClient()))
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + notionProperties.getApiToken())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader("Notion-Version", notionProperties.getApiVersion())
@@ -31,11 +37,33 @@ public class NotionApiClient {
 
     @PostConstruct
     void validateConfiguration() {
-        if (!StringUtils.hasText(notionProperties.getApiToken())
-                || !StringUtils.hasText(notionProperties.getPagesDataSourceId())
-                || !StringUtils.hasText(notionProperties.getQuestionsDataSourceId())) {
-            throw new IllegalStateException("Notion storage is enabled but Notion token/data source ids are missing.");
+        if (!StringUtils.hasText(notionProperties.getApiToken())) {
+            throw new IllegalStateException("Notion storage is enabled but the Notion API token is missing.");
         }
+    }
+
+    public List<DataSourceSummary> searchDataSources(String query) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("query", query);
+        body.put("page_size", 50);
+        body.put("filter", Map.of(
+                "value", "data_source",
+                "property", "object"
+        ));
+
+        JsonNode response = execute(() -> restClient.post()
+                .uri("/search")
+                .body(body)
+                .retrieve()
+                .body(JsonNode.class), "search Notion data sources");
+
+        return StreamSupport.stream(response.path("results").spliterator(), false)
+                .filter(node -> "data_source".equals(node.path("object").asText()))
+                .map(node -> new DataSourceSummary(
+                        node.path("id").asText(),
+                        joinTexts(node.path("title"))
+                ))
+                .toList();
     }
 
     public JsonNode queryDataSource(String dataSourceId, Map<String, Object> body) {
@@ -44,6 +72,14 @@ public class NotionApiClient {
                 .body(body)
                 .retrieve()
                 .body(JsonNode.class), "query data source " + dataSourceId);
+    }
+
+    public JsonNode updateDataSource(String dataSourceId, Map<String, Object> body) {
+        return execute(() -> restClient.patch()
+                .uri("/data_sources/{id}", dataSourceId)
+                .body(body)
+                .retrieve()
+                .body(JsonNode.class), "update data source " + dataSourceId);
     }
 
     public JsonNode retrievePage(String pageId) {
@@ -75,6 +111,15 @@ public class NotionApiClient {
         } catch (RestClientException exception) {
             throw new IllegalStateException("Failed to " + label + " via Notion API", exception);
         }
+    }
+
+    private static String joinTexts(JsonNode arrayNode) {
+        StringBuilder builder = new StringBuilder();
+        arrayNode.forEach(item -> builder.append(item.path("plain_text").asText()));
+        return builder.toString();
+    }
+
+    public record DataSourceSummary(String id, String title) {
     }
 
     @FunctionalInterface

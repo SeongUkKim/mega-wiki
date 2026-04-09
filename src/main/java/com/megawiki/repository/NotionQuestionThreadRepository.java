@@ -1,7 +1,6 @@
 package com.megawiki.repository;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.megawiki.config.NotionProperties;
 import com.megawiki.domain.KnowledgeSourceType;
 import com.megawiki.domain.QuestionThread;
 import java.time.LocalDateTime;
@@ -20,11 +19,11 @@ import org.springframework.stereotype.Repository;
 public class NotionQuestionThreadRepository implements QuestionThreadRepository {
 
     private final NotionApiClient notionApiClient;
-    private final NotionProperties notionProperties;
+    private final NotionDataSourceRegistry notionDataSourceRegistry;
 
-    public NotionQuestionThreadRepository(NotionApiClient notionApiClient, NotionProperties notionProperties) {
+    public NotionQuestionThreadRepository(NotionApiClient notionApiClient, NotionDataSourceRegistry notionDataSourceRegistry) {
         this.notionApiClient = notionApiClient;
-        this.notionProperties = notionProperties;
+        this.notionDataSourceRegistry = notionDataSourceRegistry;
     }
 
     @Override
@@ -47,7 +46,7 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
         JsonNode response;
         if (thread.getId() == null) {
             Map<String, Object> body = new LinkedHashMap<>();
-            body.put("parent", Map.of("data_source_id", notionProperties.getQuestionsDataSourceId()));
+            body.put("parent", Map.of("data_source_id", notionDataSourceRegistry.getQuestionsDataSourceId()));
             body.put("properties", buildProperties(thread));
             response = notionApiClient.createPage(body);
         } else {
@@ -68,7 +67,7 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
                 "timestamp", "last_edited_time",
                 "direction", "descending"
         )));
-        JsonNode response = notionApiClient.queryDataSource(notionProperties.getQuestionsDataSourceId(), body);
+        JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getQuestionsDataSourceId(), body);
         return StreamSupport.stream(response.path("results").spliterator(), false)
                 .map(this::mapThread)
                 .limit(limit)

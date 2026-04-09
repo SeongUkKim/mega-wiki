@@ -13,6 +13,8 @@ mega-wiki:
     api-token: ${NOTION_API_TOKEN:}
     pages-data-source-id: ${NOTION_PAGES_DATA_SOURCE_ID:}
     questions-data-source-id: ${NOTION_QUESTIONS_DATA_SOURCE_ID:}
+    pages-data-source-name: ${NOTION_PAGES_DATA_SOURCE_NAME:MegaWiki Pages}
+    questions-data-source-name: ${NOTION_QUESTIONS_DATA_SOURCE_NAME:MegaWiki Questions}
     api-version: ${NOTION_API_VERSION:2025-09-03}
   slack:
     enabled: ${SLACK_ENABLED:false}

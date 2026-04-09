@@ -1,10 +1,15 @@
-# Notion Data Source Schema
+# Notion µ¥ÀÌÅÍ¼Ò½º ½ºÅ°¸¶
 
-`mega-wiki.storage=notion` ëª¨ë“œì—ì„œëŠ” ì•„ëž˜ ë‘ ê°œì˜ Notion Data Sourceë¥¼ ì¤€ë¹„í•´ì•¼ í•©ë‹ˆë‹¤.
+`mega-wiki.storage=notion` ¸ðµå¿¡¼­´Â Notion¿¡ ¾Æ·¡ µÎ °³ÀÇ µ¥ÀÌÅÍ¼Ò½º°¡ ÇÊ¿äÇÕ´Ï´Ù.
 
-## 1. Pages Data Source
+- `MegaWiki Pages`
+- `MegaWiki Questions`
 
-í•„ìˆ˜ ì†ì„± ì´ë¦„:
+ÀÌÁ¦´Â `NOTION_API_TOKEN`¸¸ ÀÖ¾îµµ ¾ÖÇÃ¸®ÄÉÀÌ¼ÇÀÌ À§ ÀÌ¸§ÀÇ µ¥ÀÌÅÍ¼Ò½º¸¦ ÀÚµ¿ Å½»öÇÏ°í, ÇÊ¿äÇÑ ½ºÅ°¸¶¸¦ ÀÚµ¿À¸·Î º¸Á¤ÇÕ´Ï´Ù. ÀÌ¹Ì data source id¸¦ ¾Ë°í ÀÖÀ¸¸é È¯°æ º¯¼ö·Î Á÷Á¢ ÁöÁ¤ÇØµµ µË´Ï´Ù.
+
+## 1. Pages µ¥ÀÌÅÍ¼Ò½º
+
+ÇÊ¼ö ¼Ó¼º:
 
 - `Name` : Title
 - `Slug` : Rich text
@@ -17,9 +22,9 @@
 - `LinkedQuestions` : Number
 - `HelpfulCount` : Number
 
-## 2. Questions Data Source
+## 2. Questions µ¥ÀÌÅÍ¼Ò½º
 
-í•„ìˆ˜ ì†ì„± ì´ë¦„:
+ÇÊ¼ö ¼Ó¼º:
 
 - `Name` : Title
 - `Author` : Rich text
@@ -29,23 +34,33 @@
 - `LinkedPageId` : Rich text
 - `SourceType` : Select (`SLACK_THREAD`, `MEGAONE_ASK`, `MANUAL`)
 
-## í™˜ê²½ ë³€ìˆ˜
+## È¯°æ º¯¼ö
+
+ÇÊ¼ö:
 
 - `NOTION_API_TOKEN`
+
+¼±ÅÃ:
+
 - `NOTION_PAGES_DATA_SOURCE_ID`
 - `NOTION_QUESTIONS_DATA_SOURCE_ID`
-- ì„ íƒ: `NOTION_API_VERSION`
+- `NOTION_PAGES_DATA_SOURCE_NAME`
+- `NOTION_QUESTIONS_DATA_SOURCE_NAME`
+- `NOTION_API_VERSION`
 
-## ì‹¤í–‰ ì˜ˆì‹œ
+## ½ÇÇà ¿¹½Ã
 
-```bash
-./gradlew bootRun --args='--spring.profiles.active=local'
-```
-
-Windows PowerShell:
+·ÎÄÃ ¸Þ¸ð¸® ÀúÀå¼Ò¸¦ ¾²´Â °æ¿ì:
 
 ```powershell
 .\gradlew.bat bootRun --args="--spring.profiles.active=local"
 ```
 
-ë¡œì»¬ ë°ëª¨ëŠ” `local` í”„ë¡œí•„ë¡œ ë©”ëª¨ë¦¬ ì €ìž¥ì†Œë¥¼ ì‚¬ìš©í•˜ê³ , ì‹¤ì œ ê¸°ë¡ì€ ê¸°ë³¸ í”„ë¡œí•„ì˜ Notion ì €ìž¥ì†Œë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
+½ÇÁ¦ Notion ÀúÀå¼Ò¸¦ ¾²´Â °æ¿ì:
+
+```powershell
+$env:NOTION_API_TOKEN="your-token"
+.\gradlew.bat bootRun
+```
+
+¾ÛÀº ½ÃÀÛ ½Ã Notion µ¥ÀÌÅÍ¼Ò½º¸¦ °Ë»öÇÏ°í, ÇöÀç ÄÚµå°¡ ±â´ëÇÏ´Â ¼Ó¼º ±¸Á¶¸¦ ÀÚµ¿À¸·Î ¸ÂÃä´Ï´Ù.

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.megawiki.config.NotionProperties;
 import com.megawiki.domain.Contribution;
 import com.megawiki.domain.KnowledgePage;
 import com.megawiki.domain.KnowledgeSourceType;
@@ -30,16 +29,16 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
     };
 
     private final NotionApiClient notionApiClient;
-    private final NotionProperties notionProperties;
+    private final NotionDataSourceRegistry notionDataSourceRegistry;
     private final ObjectMapper objectMapper;
 
     public NotionKnowledgePageRepository(
             NotionApiClient notionApiClient,
-            NotionProperties notionProperties,
+            NotionDataSourceRegistry notionDataSourceRegistry,
             ObjectMapper objectMapper
     ) {
         this.notionApiClient = notionApiClient;
-        this.notionProperties = notionProperties;
+        this.notionDataSourceRegistry = notionDataSourceRegistry;
         this.objectMapper = objectMapper;
     }
 
@@ -66,7 +65,7 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
                 "property", "Slug",
                 "rich_text", Map.of("equals", slug)
         ));
-        JsonNode response = notionApiClient.queryDataSource(notionProperties.getPagesDataSourceId(), body);
+        JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getPagesDataSourceId(), body);
         return StreamSupport.stream(response.path("results").spliterator(), false)
                 .findFirst()
                 .map(this::mapPage);
@@ -77,7 +76,7 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
         JsonNode response;
         if (page.getId() == null) {
             Map<String, Object> body = new LinkedHashMap<>();
-            body.put("parent", Map.of("data_source_id", notionProperties.getPagesDataSourceId()));
+            body.put("parent", Map.of("data_source_id", notionDataSourceRegistry.getPagesDataSourceId()));
             body.put("properties", buildProperties(page));
             response = notionApiClient.createPage(body);
         } else {
@@ -98,7 +97,7 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
                 "timestamp", "last_edited_time",
                 "direction", "descending"
         )));
-        JsonNode response = notionApiClient.queryDataSource(notionProperties.getPagesDataSourceId(), body);
+        JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getPagesDataSourceId(), body);
         return StreamSupport.stream(response.path("results").spliterator(), false)
                 .map(this::mapPage)
                 .limit(limit)

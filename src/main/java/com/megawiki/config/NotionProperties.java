@@ -8,6 +8,8 @@ public class NotionProperties {
     private String apiToken = "";
     private String pagesDataSourceId = "";
     private String questionsDataSourceId = "";
+    private String pagesDataSourceName = "MegaWiki Pages";
+    private String questionsDataSourceName = "MegaWiki Questions";
     private String apiVersion = "2025-09-03";
 
     public String getApiToken() {
@@ -32,6 +34,22 @@ public class NotionProperties {
 
     public void setQuestionsDataSourceId(String questionsDataSourceId) {
         this.questionsDataSourceId = questionsDataSourceId;
+    }
+
+    public String getPagesDataSourceName() {
+        return pagesDataSourceName;
+    }
+
+    public void setPagesDataSourceName(String pagesDataSourceName) {
+        this.pagesDataSourceName = pagesDataSourceName;
+    }
+
+    public String getQuestionsDataSourceName() {
+        return questionsDataSourceName;
+    }
+
+    public void setQuestionsDataSourceName(String questionsDataSourceName) {
+        this.questionsDataSourceName = questionsDataSourceName;
     }
 
     public String getApiVersion() {
