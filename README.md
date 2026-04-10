@@ -248,15 +248,26 @@ src/main/java/com/megawiki/
 ├── integration/
 │   ├── slack/                        # Slack 연동
 │   │   ├── SlackEventController.java # HTTP Webhook 엔드포인트
-│   │   ├── SlackEventService.java    # 이벤트 처리 (Snowflake/Gemini 분기)
+│   │   ├── SlackEventService.java    # 이벤트 파싱 및 처리 라우팅
+│   │   ├── SlackMentionProcessor.java# Slack 멘션 처리 전략 인터페이스
+│   │   ├── GeminiSlackMentionProcessor.java
+│   │   ├── SnowflakeSlackMentionProcessor.java
 │   │   ├── SlackSocketModeRunner.java# Socket Mode WebSocket 연결
 │   │   ├── SlackApiClient.java       # Slack API 호출
+│   │   ├── SlackReplyFormatter.java  # Slack 응답 메시지 포맷터
 │   │   ├── SlackSignatureVerifier.java
 │   │   └── SlackEventDeduplicator.java
 │   └── snowflake/                    # Snowflake 연동
 │       ├── SnowflakeCortexClient.java# Cortex Search API 호출
 │       └── SnowflakeCortexResponse.java
-├── repository/                       # 데이터 저장소 (Notion/InMemory)
-├── service/                          # 비즈니스 로직
+├── repository/                       # 데이터 저장소 및 조회 전용 포트
+│   ├── KnowledgePageRepository.java
+│   ├── QuestionThreadRepository.java
+│   ├── DashboardQueryRepository.java # 대시보드 조회 전용 포트
+│   ├── InMemoryDashboardQueryRepository.java
+│   ├── NotionDashboardQueryRepository.java
+│   ├── NotionPagedQuerySupport.java  # Notion 페이지네이션 공통 처리
+│   └── NotionRichTextSupport.java    # Notion rich text 직렬화/역직렬화 공통 처리
+├── service/                          # 비즈니스 로직 및 유스케이스 오케스트레이션
 └── web/                              # REST API 컨트롤러
 ```
