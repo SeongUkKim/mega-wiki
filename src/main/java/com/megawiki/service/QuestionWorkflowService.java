@@ -28,10 +28,19 @@ public class QuestionWorkflowService {
         this.slugGenerator = slugGenerator;
     }
 
-    public QuestionThread submitQuestion(String author, String channel, String question, KnowledgeSourceType sourceType) {
-        AiAnswerDraft draft = aiAnswerGenerator.generate(question, sourceType);
-        String slug = slugGenerator.generate(draft.title());
+    public QuestionSubmissionResult submit(QuestionSubmissionCommand command) {
+        AiAnswerDraft draft = aiAnswerGenerator.generate(command.question(), command.sourceType());
+        KnowledgePage savedPage = saveKnowledgePage(draft, command);
+        QuestionThread savedThread = saveQuestionThread(command, draft, savedPage.getId());
+        return new QuestionSubmissionResult(savedPage, savedThread);
+    }
 
+    public QuestionThread submitQuestion(String author, String channel, String question, KnowledgeSourceType sourceType) {
+        return submit(new QuestionSubmissionCommand(author, channel, question, sourceType)).thread();
+    }
+
+    private KnowledgePage saveKnowledgePage(AiAnswerDraft draft, QuestionSubmissionCommand command) {
+        String slug = slugGenerator.generate(draft.title());
         KnowledgePage page = knowledgePageRepository.findBySlug(slug)
                 .orElseGet(() -> KnowledgePage.create(
                         draft.title(),
@@ -39,20 +48,22 @@ public class QuestionWorkflowService {
                         draft.summary(),
                         "",
                         draft.tags(),
-                        sourceType,
+                        command.sourceType(),
                         KnowledgeStatus.DRAFT
                 ));
 
-        page.mergeAiDraft(draft, question);
-        KnowledgePage savedPage = knowledgePageRepository.save(page);
+        page.mergeAiDraft(draft, command.question());
+        return knowledgePageRepository.save(page);
+    }
 
+    private QuestionThread saveQuestionThread(QuestionSubmissionCommand command, AiAnswerDraft draft, String linkedPageId) {
         QuestionThread thread = QuestionThread.create(
-                author,
-                channel,
-                question,
+                command.author(),
+                command.channel(),
+                command.question(),
                 draft.answer(),
-                savedPage.getId(),
-                sourceType
+                linkedPageId,
+                command.sourceType()
         );
         return questionThreadRepository.save(thread);
     }

@@ -1,5 +1,16 @@
 package com.megawiki.repository;
 
+import static com.megawiki.repository.NotionRichTextSupport.multiSelectProperty;
+import static com.megawiki.repository.NotionRichTextSupport.numberProperty;
+import static com.megawiki.repository.NotionRichTextSupport.parseDateTime;
+import static com.megawiki.repository.NotionRichTextSupport.readEnum;
+import static com.megawiki.repository.NotionRichTextSupport.readMultiSelect;
+import static com.megawiki.repository.NotionRichTextSupport.readRichText;
+import static com.megawiki.repository.NotionRichTextSupport.readTitle;
+import static com.megawiki.repository.NotionRichTextSupport.richTextProperty;
+import static com.megawiki.repository.NotionRichTextSupport.selectProperty;
+import static com.megawiki.repository.NotionRichTextSupport.titleProperty;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,20 +19,15 @@ import com.megawiki.domain.Contribution;
 import com.megawiki.domain.KnowledgePage;
 import com.megawiki.domain.KnowledgeSourceType;
 import com.megawiki.domain.KnowledgeStatus;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 @Repository
 @ConditionalOnProperty(name = "mega-wiki.storage", havingValue = "notion")
@@ -32,15 +38,18 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
 
     private final NotionApiClient notionApiClient;
     private final NotionDataSourceRegistry notionDataSourceRegistry;
+    private final NotionPagedQuerySupport notionPagedQuerySupport;
     private final ObjectMapper objectMapper;
 
     public NotionKnowledgePageRepository(
             NotionApiClient notionApiClient,
             NotionDataSourceRegistry notionDataSourceRegistry,
+            NotionPagedQuerySupport notionPagedQuerySupport,
             ObjectMapper objectMapper
     ) {
         this.notionApiClient = notionApiClient;
         this.notionDataSourceRegistry = notionDataSourceRegistry;
+        this.notionPagedQuerySupport = notionPagedQuerySupport;
         this.objectMapper = objectMapper;
     }
 
@@ -52,6 +61,11 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
     @Override
     public List<KnowledgePage> findRecent(int limit) {
         return queryPages(limit);
+    }
+
+    @Override
+    public boolean existsAny() {
+        return !queryPages(1).isEmpty();
     }
 
     @Override
@@ -97,51 +111,7 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
     }
 
     private List<KnowledgePage> queryPages(Integer limit) {
-        List<KnowledgePage> pages = new ArrayList<>();
-        String cursor = null;
-
-        do {
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("page_size", pageSize(limit, pages.size()));
-            body.put("sorts", List.of(Map.of(
-                    "timestamp", "last_edited_time",
-                    "direction", "descending"
-            )));
-            if (StringUtils.hasText(cursor)) {
-                body.put("start_cursor", cursor);
-            }
-
-            JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getPagesDataSourceId(), body);
-            StreamSupport.stream(response.path("results").spliterator(), false)
-                    .map(this::mapPage)
-                    .limit(remaining(limit, pages.size()))
-                    .forEach(pages::add);
-
-            if (!response.path("has_more").asBoolean(false) || reachedLimit(limit, pages.size())) {
-                break;
-            }
-            cursor = response.path("next_cursor").asText();
-        } while (StringUtils.hasText(cursor));
-
-        return pages;
-    }
-
-    private static int pageSize(Integer limit, int currentSize) {
-        if (limit == null) {
-            return 100;
-        }
-        return Math.max(Math.min(limit - currentSize, 100), 1);
-    }
-
-    private static long remaining(Integer limit, int currentSize) {
-        if (limit == null) {
-            return Long.MAX_VALUE;
-        }
-        return Math.max(limit - currentSize, 0);
-    }
-
-    private static boolean reachedLimit(Integer limit, int currentSize) {
-        return limit != null && currentSize >= limit;
+        return notionPagedQuerySupport.query(notionDataSourceRegistry.getPagesDataSourceId(), limit, this::mapPage);
     }
 
     private Map<String, Object> buildProperties(KnowledgePage page) {
@@ -195,80 +165,5 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Failed to deserialize contributions", exception);
         }
-    }
-
-    private static LocalDateTime parseDateTime(String value) {
-        return OffsetDateTime.parse(value).toLocalDateTime();
-    }
-
-    private static Map<String, Object> titleProperty(String value) {
-        return Map.of("title", richTextItems(value));
-    }
-
-    private static Map<String, Object> richTextProperty(String value) {
-        return Map.of("rich_text", richTextItems(value));
-    }
-
-    private static Map<String, Object> selectProperty(String value) {
-        return Map.of("select", Map.of("name", value));
-    }
-
-    private static Map<String, Object> numberProperty(int value) {
-        return Map.of("number", value);
-    }
-
-    private static Map<String, Object> multiSelectProperty(Set<String> values) {
-        return Map.of("multi_select", values.stream().map(tag -> Map.of("name", tag)).toList());
-    }
-
-    private static List<Map<String, Object>> richTextItems(String value) {
-        if (value == null || value.isBlank()) {
-            return List.of();
-        }
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (String segment : splitText(value, 1800)) {
-            items.add(Map.of(
-                    "type", "text",
-                    "text", Map.of("content", segment)
-            ));
-        }
-        return items;
-    }
-
-    private static List<String> splitText(String value, int segmentSize) {
-        List<String> segments = new ArrayList<>();
-        for (int index = 0; index < value.length(); index += segmentSize) {
-            segments.add(value.substring(index, Math.min(index + segmentSize, value.length())));
-        }
-        return segments;
-    }
-
-    private static String readTitle(JsonNode properties, String propertyName) {
-        return joinTexts(properties.path(propertyName).path("title"));
-    }
-
-    private static String readRichText(JsonNode properties, String propertyName) {
-        return joinTexts(properties.path(propertyName).path("rich_text"));
-    }
-
-    private static String joinTexts(JsonNode arrayNode) {
-        StringBuilder builder = new StringBuilder();
-        arrayNode.forEach(item -> builder.append(item.path("plain_text").asText()));
-        return builder.toString();
-    }
-
-    private static Set<String> readMultiSelect(JsonNode properties, String propertyName) {
-        LinkedHashSet<String> tags = new LinkedHashSet<>();
-        properties.path(propertyName).path("multi_select")
-                .forEach(option -> tags.add(option.path("name").asText()));
-        return tags;
-    }
-
-    private static <E extends Enum<E>> E readEnum(JsonNode properties, String propertyName, Class<E> enumType, E fallback) {
-        String raw = properties.path(propertyName).path("select").path("name").asText();
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        return Enum.valueOf(enumType, raw);
     }
 }

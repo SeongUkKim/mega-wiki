@@ -35,7 +35,11 @@ class NotionQuestionThreadRepositoryTest {
     void setUp() {
         NotionDataSourceRegistry registry = new NotionDataSourceRegistry();
         registry.register("pages-id", "questions-id");
-        repository = new NotionQuestionThreadRepository(notionApiClient, registry);
+        repository = new NotionQuestionThreadRepository(
+                notionApiClient,
+                registry,
+                new NotionPagedQuerySupport(notionApiClient)
+        );
     }
 
     @Test

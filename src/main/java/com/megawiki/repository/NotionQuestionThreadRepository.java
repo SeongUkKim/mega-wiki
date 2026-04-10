@@ -1,20 +1,22 @@
 package com.megawiki.repository;
 
+import static com.megawiki.repository.NotionRichTextSupport.parseDateTime;
+import static com.megawiki.repository.NotionRichTextSupport.readEnum;
+import static com.megawiki.repository.NotionRichTextSupport.readRichText;
+import static com.megawiki.repository.NotionRichTextSupport.richTextProperty;
+import static com.megawiki.repository.NotionRichTextSupport.selectProperty;
+import static com.megawiki.repository.NotionRichTextSupport.titleProperty;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.megawiki.domain.KnowledgeSourceType;
 import com.megawiki.domain.QuestionThread;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 
 @Repository
 @ConditionalOnProperty(name = "mega-wiki.storage", havingValue = "notion")
@@ -22,10 +24,16 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
 
     private final NotionApiClient notionApiClient;
     private final NotionDataSourceRegistry notionDataSourceRegistry;
+    private final NotionPagedQuerySupport notionPagedQuerySupport;
 
-    public NotionQuestionThreadRepository(NotionApiClient notionApiClient, NotionDataSourceRegistry notionDataSourceRegistry) {
+    public NotionQuestionThreadRepository(
+            NotionApiClient notionApiClient,
+            NotionDataSourceRegistry notionDataSourceRegistry,
+            NotionPagedQuerySupport notionPagedQuerySupport
+    ) {
         this.notionApiClient = notionApiClient;
         this.notionDataSourceRegistry = notionDataSourceRegistry;
+        this.notionPagedQuerySupport = notionPagedQuerySupport;
     }
 
     @Override
@@ -67,51 +75,7 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
     }
 
     private List<QuestionThread> queryThreads(Integer limit) {
-        List<QuestionThread> threads = new ArrayList<>();
-        String cursor = null;
-
-        do {
-            Map<String, Object> body = new LinkedHashMap<>();
-            body.put("page_size", pageSize(limit, threads.size()));
-            body.put("sorts", List.of(Map.of(
-                    "timestamp", "last_edited_time",
-                    "direction", "descending"
-            )));
-            if (StringUtils.hasText(cursor)) {
-                body.put("start_cursor", cursor);
-            }
-
-            JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getQuestionsDataSourceId(), body);
-            StreamSupport.stream(response.path("results").spliterator(), false)
-                    .map(this::mapThread)
-                    .limit(remaining(limit, threads.size()))
-                    .forEach(threads::add);
-
-            if (!response.path("has_more").asBoolean(false) || reachedLimit(limit, threads.size())) {
-                break;
-            }
-            cursor = response.path("next_cursor").asText();
-        } while (StringUtils.hasText(cursor));
-
-        return threads;
-    }
-
-    private static int pageSize(Integer limit, int currentSize) {
-        if (limit == null) {
-            return 100;
-        }
-        return Math.max(Math.min(limit - currentSize, 100), 1);
-    }
-
-    private static long remaining(Integer limit, int currentSize) {
-        if (limit == null) {
-            return Long.MAX_VALUE;
-        }
-        return Math.max(limit - currentSize, 0);
-    }
-
-    private static boolean reachedLimit(Integer limit, int currentSize) {
-        return limit != null && currentSize >= limit;
+        return notionPagedQuerySupport.query(notionDataSourceRegistry.getQuestionsDataSourceId(), limit, this::mapThread);
     }
 
     private Map<String, Object> buildProperties(QuestionThread thread) {
@@ -140,63 +104,10 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
         );
     }
 
-    private static LocalDateTime parseDateTime(String value) {
-        return OffsetDateTime.parse(value).toLocalDateTime();
-    }
-
     private static String trimForTitle(String question) {
         if (question.length() <= 60) {
             return question;
         }
         return question.substring(0, 57) + "...";
-    }
-
-    private static Map<String, Object> titleProperty(String value) {
-        return Map.of("title", richTextItems(value));
-    }
-
-    private static Map<String, Object> richTextProperty(String value) {
-        return Map.of("rich_text", richTextItems(value));
-    }
-
-    private static Map<String, Object> selectProperty(String value) {
-        return Map.of("select", Map.of("name", value));
-    }
-
-    private static List<Map<String, Object>> richTextItems(String value) {
-        if (value == null || value.isBlank()) {
-            return List.of();
-        }
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (String segment : splitText(value, 1800)) {
-            items.add(Map.of(
-                    "type", "text",
-                    "text", Map.of("content", segment)
-            ));
-        }
-        return items;
-    }
-
-    private static List<String> splitText(String value, int segmentSize) {
-        List<String> segments = new ArrayList<>();
-        for (int index = 0; index < value.length(); index += segmentSize) {
-            segments.add(value.substring(index, Math.min(index + segmentSize, value.length())));
-        }
-        return segments;
-    }
-
-    private static String readRichText(JsonNode properties, String propertyName) {
-        StringBuilder builder = new StringBuilder();
-        properties.path(propertyName).path("rich_text")
-                .forEach(item -> builder.append(item.path("plain_text").asText()));
-        return builder.toString();
-    }
-
-    private static <E extends Enum<E>> E readEnum(JsonNode properties, String propertyName, Class<E> enumType, E fallback) {
-        String raw = properties.path(propertyName).path("select").path("name").asText();
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        return Enum.valueOf(enumType, raw);
     }
 }

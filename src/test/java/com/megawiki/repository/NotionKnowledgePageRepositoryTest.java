@@ -35,7 +35,12 @@ class NotionKnowledgePageRepositoryTest {
     void setUp() {
         NotionDataSourceRegistry registry = new NotionDataSourceRegistry();
         registry.register("pages-id", "questions-id");
-        repository = new NotionKnowledgePageRepository(notionApiClient, registry, objectMapper);
+        repository = new NotionKnowledgePageRepository(
+                notionApiClient,
+                registry,
+                new NotionPagedQuerySupport(notionApiClient),
+                objectMapper
+        );
     }
 
     @Test

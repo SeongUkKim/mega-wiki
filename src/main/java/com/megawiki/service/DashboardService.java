@@ -3,8 +3,7 @@ package com.megawiki.service;
 import com.megawiki.config.MegaWikiProperties;
 import com.megawiki.domain.KnowledgePage;
 import com.megawiki.domain.QuestionThread;
-import com.megawiki.repository.KnowledgePageRepository;
-import com.megawiki.repository.QuestionThreadRepository;
+import com.megawiki.repository.DashboardQueryRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -12,36 +11,29 @@ import org.springframework.stereotype.Service;
 public class DashboardService {
 
     private final MegaWikiProperties megaWikiProperties;
-    private final KnowledgePageRepository knowledgePageRepository;
-    private final QuestionThreadRepository questionThreadRepository;
+    private final DashboardQueryRepository dashboardQueryRepository;
 
     public DashboardService(
             MegaWikiProperties megaWikiProperties,
-            KnowledgePageRepository knowledgePageRepository,
-            QuestionThreadRepository questionThreadRepository
+            DashboardQueryRepository dashboardQueryRepository
     ) {
         this.megaWikiProperties = megaWikiProperties;
-        this.knowledgePageRepository = knowledgePageRepository;
-        this.questionThreadRepository = questionThreadRepository;
+        this.dashboardQueryRepository = dashboardQueryRepository;
     }
 
     public DashboardSnapshot loadDashboard() {
-        List<KnowledgePage> recentPages = knowledgePageRepository.findRecent(6);
-        List<QuestionThread> recentQuestions = questionThreadRepository.findRecent(6);
-        long contributions = knowledgePageRepository.findAll().stream()
-                .mapToLong(page -> page.getContributions().size())
-                .sum();
+        DashboardQueryRepository.DashboardQueryResult dashboard = dashboardQueryRepository.load(6);
 
         return new DashboardSnapshot(
                 megaWikiProperties.getTitle(),
                 megaWikiProperties.getSlogan(),
                 megaWikiProperties.getMissionTrack(),
                 megaWikiProperties.getAiProvider(),
-                knowledgePageRepository.count(),
-                questionThreadRepository.count(),
-                contributions,
-                recentPages,
-                recentQuestions,
+                dashboard.pageCount(),
+                dashboard.questionCount(),
+                dashboard.contributionCount(),
+                dashboard.recentPages(),
+                dashboard.recentQuestions(),
                 List.of(
                         "Convert repeated Slack questions into durable wiki assets",
                         "Blend AI drafts with teammate corrections in a single workflow",

@@ -27,7 +27,7 @@ public class SeedDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (knowledgePageRepository.count() > 0) {
+        if (knowledgePageRepository.existsAny()) {
             return;
         }
 

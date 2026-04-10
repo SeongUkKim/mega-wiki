@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,11 +12,11 @@ import com.megawiki.domain.KnowledgePage;
 import com.megawiki.domain.KnowledgeSourceType;
 import com.megawiki.domain.KnowledgeStatus;
 import com.megawiki.domain.QuestionThread;
-import com.megawiki.config.SnowflakeProperties;
-import com.megawiki.repository.KnowledgePageRepository;
+import com.megawiki.service.QuestionSubmissionCommand;
+import com.megawiki.service.QuestionSubmissionResult;
 import com.megawiki.service.QuestionWorkflowService;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,26 +35,18 @@ class SlackEventServiceTest {
     private QuestionWorkflowService questionWorkflowService;
 
     @Mock
-    private KnowledgePageRepository knowledgePageRepository;
-
-    @Mock
     private SlackApiClient slackApiClient;
 
     private SlackEventService slackEventService;
 
     @BeforeEach
     void setUp() {
-        SnowflakeProperties snowflakeProperties = new SnowflakeProperties();
-        snowflakeProperties.setEnabled(false);
-
+        SlackMentionProcessor mentionProcessor = new GeminiSlackMentionProcessor(questionWorkflowService, slackApiClient);
         slackEventService = new SlackEventService(
-                questionWorkflowService,
-                knowledgePageRepository,
                 slackApiClient,
                 taskExecutor,
                 new SlackEventDeduplicator(),
-                null,
-                snowflakeProperties
+                List.of(mentionProcessor)
         );
     }
 
@@ -94,13 +87,12 @@ class SlackEventServiceTest {
         );
         page.assignId("page-1");
 
-        when(questionWorkflowService.submitQuestion(
-                eq("U123"),
-                eq("C123"),
-                eq("Where is the remote work guide?"),
-                eq(KnowledgeSourceType.SLACK_THREAD)
-        )).thenReturn(thread);
-        when(knowledgePageRepository.findById("page-1")).thenReturn(Optional.of(page));
+        when(questionWorkflowService.submit(new QuestionSubmissionCommand(
+                "U123",
+                "C123",
+                "Where is the remote work guide?",
+                KnowledgeSourceType.SLACK_THREAD
+        ))).thenReturn(new QuestionSubmissionResult(page, thread));
 
         slackEventService.acceptEvent(objectMapper.readTree(payload));
 
@@ -148,14 +140,22 @@ class SlackEventServiceTest {
         );
         page.assignId("page-1");
 
-        when(questionWorkflowService.submitQuestion(eq("U123"), eq("C123"), eq("help"), eq(KnowledgeSourceType.SLACK_THREAD)))
-                .thenReturn(thread);
-        when(knowledgePageRepository.findById("page-1")).thenReturn(Optional.of(page));
+        when(questionWorkflowService.submit(new QuestionSubmissionCommand(
+                "U123",
+                "C123",
+                "help",
+                KnowledgeSourceType.SLACK_THREAD
+        ))).thenReturn(new QuestionSubmissionResult(page, thread));
 
         slackEventService.acceptEvent(objectMapper.readTree(payload));
         slackEventService.acceptEvent(objectMapper.readTree(payload));
 
-        verify(questionWorkflowService).submitQuestion(eq("U123"), eq("C123"), eq("help"), eq(KnowledgeSourceType.SLACK_THREAD));
+        verify(questionWorkflowService).submit(new QuestionSubmissionCommand(
+                "U123",
+                "C123",
+                "help",
+                KnowledgeSourceType.SLACK_THREAD
+        ));
     }
 
     @Test
@@ -176,7 +176,7 @@ class SlackEventServiceTest {
 
         slackEventService.acceptEvent(objectMapper.readTree(payload));
 
-        verify(questionWorkflowService, never()).submitQuestion(eq("U123"), eq("C123"), eq(""), eq(KnowledgeSourceType.SLACK_THREAD));
+        verifyNoInteractions(questionWorkflowService);
         verify(slackApiClient).postThreadReply(eq("C123"), eq("1710000000.000100"), contains("질문을 입력해 주세요"));
     }
 }

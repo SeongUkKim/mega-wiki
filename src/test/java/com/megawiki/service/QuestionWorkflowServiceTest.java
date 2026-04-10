@@ -19,6 +19,20 @@ class QuestionWorkflowServiceTest {
     );
 
     @Test
+    void submitReturnsSavedPageAndQuestionThread() {
+        QuestionSubmissionResult result = questionWorkflowService.submit(new QuestionSubmissionCommand(
+                "new-hire",
+                "#general",
+                "Where is the remote work request guide?",
+                KnowledgeSourceType.SLACK_THREAD
+        ));
+
+        assertThat(result.page().getId()).isNotBlank();
+        assertThat(result.thread().getId()).isNotBlank();
+        assertThat(result.thread().getLinkedPageId()).isEqualTo(result.page().getId());
+    }
+
+    @Test
     void submitQuestionCreatesPageAndQuestionThread() {
         var thread = questionWorkflowService.submitQuestion(
                 "new-hire",

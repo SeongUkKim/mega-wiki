@@ -29,6 +29,11 @@ public class InMemoryKnowledgePageRepository implements KnowledgePageRepository 
     }
 
     @Override
+    public boolean existsAny() {
+        return !storage.isEmpty();
+    }
+
+    @Override
     public Optional<KnowledgePage> findById(String id) {
         return Optional.ofNullable(storage.get(id));
     }

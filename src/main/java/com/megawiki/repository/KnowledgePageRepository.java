@@ -10,6 +10,8 @@ public interface KnowledgePageRepository {
 
     List<KnowledgePage> findRecent(int limit);
 
+    boolean existsAny();
+
     Optional<KnowledgePage> findById(String id);
 
     Optional<KnowledgePage> findBySlug(String slug);
