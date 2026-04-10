@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -83,10 +85,16 @@ public class NotionApiClient {
     }
 
     public JsonNode retrievePage(String pageId) {
-        return execute(() -> restClient.get()
-                .uri("/pages/{id}", pageId)
-                .retrieve()
-                .body(JsonNode.class), "retrieve page " + pageId);
+        try {
+            return restClient.get()
+                    .uri("/pages/{id}", pageId)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (HttpClientErrorException.NotFound exception) {
+            throw new NoSuchElementException("Page not found: " + pageId);
+        } catch (RestClientException exception) {
+            throw new IllegalStateException("Failed to retrieve page " + pageId + " via Notion API", exception);
+        }
     }
 
     public JsonNode createPage(Map<String, Object> body) {

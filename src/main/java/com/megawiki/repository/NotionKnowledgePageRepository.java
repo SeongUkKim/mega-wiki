@@ -15,11 +15,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 @Repository
 @ConditionalOnProperty(name = "mega-wiki.storage", havingValue = "notion")
@@ -44,7 +46,7 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
 
     @Override
     public List<KnowledgePage> findAll() {
-        return queryPages(100);
+        return queryPages(null);
     }
 
     @Override
@@ -54,7 +56,11 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
 
     @Override
     public Optional<KnowledgePage> findById(String id) {
-        return Optional.of(mapPage(notionApiClient.retrievePage(id)));
+        try {
+            return Optional.of(mapPage(notionApiClient.retrievePage(id)));
+        } catch (NoSuchElementException exception) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -87,21 +93,55 @@ public class NotionKnowledgePageRepository implements KnowledgePageRepository {
 
     @Override
     public long count() {
-        return findAll().size();
+        return queryPages(null).size();
     }
 
-    private List<KnowledgePage> queryPages(int limit) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("page_size", Math.max(limit, 1));
-        body.put("sorts", List.of(Map.of(
-                "timestamp", "last_edited_time",
-                "direction", "descending"
-        )));
-        JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getPagesDataSourceId(), body);
-        return StreamSupport.stream(response.path("results").spliterator(), false)
-                .map(this::mapPage)
-                .limit(limit)
-                .toList();
+    private List<KnowledgePage> queryPages(Integer limit) {
+        List<KnowledgePage> pages = new ArrayList<>();
+        String cursor = null;
+
+        do {
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("page_size", pageSize(limit, pages.size()));
+            body.put("sorts", List.of(Map.of(
+                    "timestamp", "last_edited_time",
+                    "direction", "descending"
+            )));
+            if (StringUtils.hasText(cursor)) {
+                body.put("start_cursor", cursor);
+            }
+
+            JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getPagesDataSourceId(), body);
+            StreamSupport.stream(response.path("results").spliterator(), false)
+                    .map(this::mapPage)
+                    .limit(remaining(limit, pages.size()))
+                    .forEach(pages::add);
+
+            if (!response.path("has_more").asBoolean(false) || reachedLimit(limit, pages.size())) {
+                break;
+            }
+            cursor = response.path("next_cursor").asText();
+        } while (StringUtils.hasText(cursor));
+
+        return pages;
+    }
+
+    private static int pageSize(Integer limit, int currentSize) {
+        if (limit == null) {
+            return 100;
+        }
+        return Math.max(Math.min(limit - currentSize, 100), 1);
+    }
+
+    private static long remaining(Integer limit, int currentSize) {
+        if (limit == null) {
+            return Long.MAX_VALUE;
+        }
+        return Math.max(limit - currentSize, 0);
+    }
+
+    private static boolean reachedLimit(Integer limit, int currentSize) {
+        return limit != null && currentSize >= limit;
     }
 
     private Map<String, Object> buildProperties(KnowledgePage page) {

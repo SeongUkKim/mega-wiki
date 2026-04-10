@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 @Repository
 @ConditionalOnProperty(name = "mega-wiki.storage", havingValue = "notion")
@@ -28,7 +30,7 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
 
     @Override
     public List<QuestionThread> findAll() {
-        return queryThreads(100);
+        return queryThreads(null);
     }
 
     @Override
@@ -38,7 +40,11 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
 
     @Override
     public Optional<QuestionThread> findById(String id) {
-        return Optional.of(mapThread(notionApiClient.retrievePage(id)));
+        try {
+            return Optional.of(mapThread(notionApiClient.retrievePage(id)));
+        } catch (NoSuchElementException exception) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -57,21 +63,55 @@ public class NotionQuestionThreadRepository implements QuestionThreadRepository 
 
     @Override
     public long count() {
-        return findAll().size();
+        return queryThreads(null).size();
     }
 
-    private List<QuestionThread> queryThreads(int limit) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("page_size", Math.max(limit, 1));
-        body.put("sorts", List.of(Map.of(
-                "timestamp", "last_edited_time",
-                "direction", "descending"
-        )));
-        JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getQuestionsDataSourceId(), body);
-        return StreamSupport.stream(response.path("results").spliterator(), false)
-                .map(this::mapThread)
-                .limit(limit)
-                .toList();
+    private List<QuestionThread> queryThreads(Integer limit) {
+        List<QuestionThread> threads = new ArrayList<>();
+        String cursor = null;
+
+        do {
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("page_size", pageSize(limit, threads.size()));
+            body.put("sorts", List.of(Map.of(
+                    "timestamp", "last_edited_time",
+                    "direction", "descending"
+            )));
+            if (StringUtils.hasText(cursor)) {
+                body.put("start_cursor", cursor);
+            }
+
+            JsonNode response = notionApiClient.queryDataSource(notionDataSourceRegistry.getQuestionsDataSourceId(), body);
+            StreamSupport.stream(response.path("results").spliterator(), false)
+                    .map(this::mapThread)
+                    .limit(remaining(limit, threads.size()))
+                    .forEach(threads::add);
+
+            if (!response.path("has_more").asBoolean(false) || reachedLimit(limit, threads.size())) {
+                break;
+            }
+            cursor = response.path("next_cursor").asText();
+        } while (StringUtils.hasText(cursor));
+
+        return threads;
+    }
+
+    private static int pageSize(Integer limit, int currentSize) {
+        if (limit == null) {
+            return 100;
+        }
+        return Math.max(Math.min(limit - currentSize, 100), 1);
+    }
+
+    private static long remaining(Integer limit, int currentSize) {
+        if (limit == null) {
+            return Long.MAX_VALUE;
+        }
+        return Math.max(limit - currentSize, 0);
+    }
+
+    private static boolean reachedLimit(Integer limit, int currentSize) {
+        return limit != null && currentSize >= limit;
     }
 
     private Map<String, Object> buildProperties(QuestionThread thread) {
