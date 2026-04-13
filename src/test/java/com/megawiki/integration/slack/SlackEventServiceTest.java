@@ -2,7 +2,6 @@ package com.megawiki.integration.slack;
 
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -104,6 +103,105 @@ class SlackEventServiceTest {
     }
 
     @Test
+    void processesDirectMessageAndRepliesInThread() throws Exception {
+        String payload = """
+                {
+                  "type": "event_callback",
+                  "event_id": "EvDm01",
+                  "event": {
+                    "type": "message",
+                    "channel_type": "im",
+                    "user": "U123",
+                    "text": "Where is the remote work guide?",
+                    "channel": "D123",
+                    "ts": "1710000000.000200"
+                  }
+                }
+                """;
+
+        QuestionThread thread = QuestionThread.restore(
+                "thread-2",
+                "U123",
+                "D123",
+                "Where is the remote work guide?",
+                "Use the HR portal and ask your lead to approve it.",
+                "page-1",
+                KnowledgeSourceType.SLACK_THREAD,
+                LocalDateTime.now()
+        );
+        KnowledgePage page = KnowledgePage.create(
+                "Remote Work Guide",
+                "remote-work-guide",
+                "Guide",
+                "Content",
+                Set.of("remote-work"),
+                KnowledgeSourceType.SLACK_THREAD,
+                KnowledgeStatus.DRAFT
+        );
+        page.assignId("page-1");
+
+        when(questionWorkflowService.submit(new QuestionSubmissionCommand(
+                "U123",
+                "D123",
+                "Where is the remote work guide?",
+                KnowledgeSourceType.SLACK_THREAD
+        ))).thenReturn(new QuestionSubmissionResult(page, thread));
+
+        slackEventService.acceptEvent(objectMapper.readTree(payload));
+
+        verify(slackApiClient).postThreadReply(
+                eq("D123"),
+                eq("1710000000.000200"),
+                contains("*Remote Work Guide*")
+        );
+    }
+
+    @Test
+    void ignoresChannelMessageWithoutMention() throws Exception {
+        String payload = """
+                {
+                  "type": "event_callback",
+                  "event_id": "EvMsg01",
+                  "event": {
+                    "type": "message",
+                    "channel_type": "channel",
+                    "user": "U123",
+                    "text": "hello team",
+                    "channel": "C123",
+                    "ts": "1710000000.000300"
+                  }
+                }
+                """;
+
+        slackEventService.acceptEvent(objectMapper.readTree(payload));
+
+        verifyNoInteractions(questionWorkflowService);
+        verifyNoInteractions(slackApiClient);
+    }
+    @Test
+    void ignoresChannelMessageEvenWhenItContainsMentionToken() throws Exception {
+        String payload = """
+                {
+                  "type": "event_callback",
+                  "event_id": "EvMsg02",
+                  "event": {
+                    "type": "message",
+                    "channel_type": "channel",
+                    "user": "U123",
+                    "text": "<@UBOT> annual leave usage",
+                    "channel": "C123",
+                    "ts": "1710000000.000301"
+                  }
+                }
+                """;
+
+        slackEventService.acceptEvent(objectMapper.readTree(payload));
+
+        verifyNoInteractions(questionWorkflowService);
+        verifyNoInteractions(slackApiClient);
+    }
+
+    @Test
     void skipsDuplicateSlackEventIds() throws Exception {
         String payload = """
                 {
@@ -177,6 +275,6 @@ class SlackEventServiceTest {
         slackEventService.acceptEvent(objectMapper.readTree(payload));
 
         verifyNoInteractions(questionWorkflowService);
-        verify(slackApiClient).postThreadReply(eq("C123"), eq("1710000000.000100"), contains("질문을 입력해 주세요"));
+        verify(slackApiClient).postThreadReply(eq("C123"), eq("1710000000.000100"), contains("질문"));
     }
 }

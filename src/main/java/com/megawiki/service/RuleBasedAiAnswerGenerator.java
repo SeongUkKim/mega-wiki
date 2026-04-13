@@ -62,12 +62,26 @@ public class RuleBasedAiAnswerGenerator implements AiAnswerGenerator {
         };
         Set<String> tags = new LinkedHashSet<>(Set.of("onboarding", "knowledge-management"));
         return new AiAnswerDraft(
-                "General Onboarding Guide",
+                fallbackTitle(question, sourceType),
                 sourceLabel + " should be normalized into background, answer, and next action before it becomes a durable wiki page.",
                 "Separate context, source references, and concrete action items first. Then decide whether the issue has enough repeat value to archive.",
                 "## Drafting template\n- Question background: why this repeats\n- Immediate answer: what the employee should do now\n- Source reference: where the answer came from\n- Follow-up action: what should change in process or documentation\n\nOriginal question\n" + question,
                 tags
         );
+    }
+
+    private String fallbackTitle(String question, KnowledgeSourceType sourceType) {
+        String normalizedQuestion = question == null ? "" : question.trim().replaceAll("\\s+", " ");
+        if (!normalizedQuestion.isBlank()) {
+            return normalizedQuestion.length() <= 60
+                    ? normalizedQuestion
+                    : normalizedQuestion.substring(0, 57) + "...";
+        }
+        return switch (sourceType) {
+            case SLACK_THREAD -> "Slack question draft";
+            case MEGAONE_ASK -> "MegaOne Ask draft";
+            case MANUAL -> "Manual draft";
+        };
     }
 
     private record Playbook(

@@ -14,20 +14,23 @@ final class SlackReplyFormatter {
     }
 
     static String knowledgeNotFound() {
-        return "등록되어 있지 않은 질문입니다. 다른 키워드로 다시 질문해 주세요.";
+        return "등록된 지식을 찾지 못했습니다. 다른 키워드로 다시 질문해 주세요.";
     }
 
     static String failure() {
-        return "응답 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        return "답변 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     }
 
     static String snowflakeReply(SnowflakeCortexResponse response) {
         return "*" + response.title() + "*\n\n" + response.answer();
     }
 
-    static String geminiReply(KnowledgePage page, QuestionThread thread) {
+    static String geminiReply(KnowledgePage page, QuestionThread thread, boolean reusedExistingPage) {
+        String actionLine = reusedExistingPage
+                ? "Found in Mega-Wiki with page id `" + page.getId() + "`."
+                : "Saved in Mega-Wiki with page id `" + page.getId() + "`.";
         return "*" + page.getTitle() + "*\n"
                 + thread.getAiAnswer() + "\n\n"
-                + "Saved in Mega-Wiki with page id `" + page.getId() + "`.";
+                + actionLine;
     }
 }

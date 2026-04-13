@@ -143,6 +143,11 @@ public class KnowledgePage {
         updatedAt = LocalDateTime.now();
     }
 
+    public void recordLinkedQuestion() {
+        linkedQuestionCount += 1;
+        updatedAt = LocalDateTime.now();
+    }
+
     public void markHelpful() {
         helpfulCount += 1;
         updatedAt = LocalDateTime.now();

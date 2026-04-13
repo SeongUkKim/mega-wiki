@@ -15,24 +15,40 @@ public class QuestionWorkflowService {
     private final KnowledgePageRepository knowledgePageRepository;
     private final QuestionThreadRepository questionThreadRepository;
     private final SlugGenerator slugGenerator;
+    private final KnowledgeContextService knowledgeContextService;
 
     public QuestionWorkflowService(
             AiAnswerGenerator aiAnswerGenerator,
             KnowledgePageRepository knowledgePageRepository,
             QuestionThreadRepository questionThreadRepository,
-            SlugGenerator slugGenerator
+            SlugGenerator slugGenerator,
+            KnowledgeContextService knowledgeContextService
     ) {
         this.aiAnswerGenerator = aiAnswerGenerator;
         this.knowledgePageRepository = knowledgePageRepository;
         this.questionThreadRepository = questionThreadRepository;
         this.slugGenerator = slugGenerator;
+        this.knowledgeContextService = knowledgeContextService;
     }
 
     public QuestionSubmissionResult submit(QuestionSubmissionCommand command) {
+        var existingPage = knowledgeContextService.findBestMatch(command.question());
+        if (existingPage.isPresent()) {
+            KnowledgePage page = existingPage.get();
+            page.recordLinkedQuestion();
+            KnowledgePage savedPage = knowledgePageRepository.save(page);
+            QuestionThread savedThread = saveQuestionThread(
+                    command,
+                    knowledgeContextService.buildAnswerFromPage(savedPage),
+                    savedPage.getId()
+            );
+            return new QuestionSubmissionResult(savedPage, savedThread, true);
+        }
+
         AiAnswerDraft draft = aiAnswerGenerator.generate(command.question(), command.sourceType());
         KnowledgePage savedPage = saveKnowledgePage(draft, command);
-        QuestionThread savedThread = saveQuestionThread(command, draft, savedPage.getId());
-        return new QuestionSubmissionResult(savedPage, savedThread);
+        QuestionThread savedThread = saveQuestionThread(command, draft.answer(), savedPage.getId());
+        return new QuestionSubmissionResult(savedPage, savedThread, false);
     }
 
     public QuestionThread submitQuestion(String author, String channel, String question, KnowledgeSourceType sourceType) {
@@ -56,12 +72,12 @@ public class QuestionWorkflowService {
         return knowledgePageRepository.save(page);
     }
 
-    private QuestionThread saveQuestionThread(QuestionSubmissionCommand command, AiAnswerDraft draft, String linkedPageId) {
+    private QuestionThread saveQuestionThread(QuestionSubmissionCommand command, String answer, String linkedPageId) {
         QuestionThread thread = QuestionThread.create(
                 command.author(),
                 command.channel(),
                 command.question(),
-                draft.answer(),
+                answer,
                 linkedPageId,
                 command.sourceType()
         );

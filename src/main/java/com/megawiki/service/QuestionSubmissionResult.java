@@ -5,6 +5,10 @@ import com.megawiki.domain.QuestionThread;
 
 public record QuestionSubmissionResult(
         KnowledgePage page,
-        QuestionThread thread
+        QuestionThread thread,
+        boolean reusedExistingPage
 ) {
+    public QuestionSubmissionResult(KnowledgePage page, QuestionThread thread) {
+        this(page, thread, false);
+    }
 }

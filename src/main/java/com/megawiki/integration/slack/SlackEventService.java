@@ -38,7 +38,7 @@ public class SlackEventService {
         }
 
         JsonNode event = payload.path("event");
-        if (!"app_mention".equals(event.path("type").asText()) || event.hasNonNull("bot_id")) {
+        if (!isSupportedUserQuestionEvent(event)) {
             return;
         }
 
@@ -71,6 +71,23 @@ public class SlackEventService {
                 .filter(processor -> processor.supports(request))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No Slack mention processor is available."));
+    }
+
+    private static boolean isSupportedUserQuestionEvent(JsonNode event) {
+        if (event.hasNonNull("bot_id")) {
+            return false;
+        }
+
+        String eventType = event.path("type").asText();
+        if ("app_mention".equals(eventType)) {
+            return true;
+        }
+
+        if (!"message".equals(eventType)) {
+            return false;
+        }
+
+        return "im".equals(event.path("channel_type").asText(""));
     }
 
     private static String normalizeQuestion(String rawText) {

@@ -8,6 +8,7 @@ import com.slack.api.bolt.App;
 import com.slack.api.bolt.AppConfig;
 import com.slack.api.bolt.socket_mode.SocketModeApp;
 import com.slack.api.model.event.AppMentionEvent;
+import com.slack.api.model.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -51,6 +52,10 @@ public class SlackSocketModeRunner implements CommandLineRunner {
             forwardMentionEvent(payload);
             return ctx.ack();
         });
+        app.event(MessageEvent.class, (payload, ctx) -> {
+            forwardMessageEvent(payload);
+            return ctx.ack();
+        });
 
         SocketModeApp socketModeApp = new SocketModeApp(slackProperties.getAppToken(), app);
         socketModeApp.startAsync();
@@ -61,7 +66,7 @@ public class SlackSocketModeRunner implements CommandLineRunner {
         AppMentionEvent event = payload.getEvent();
         ObjectNode payloadNode = objectMapper.createObjectNode();
         payloadNode.put("type", "event_callback");
-        payloadNode.put("event_id", resolveEventId(payload, event));
+        payloadNode.put("event_id", resolveMentionEventId(payload, event));
 
         ObjectNode eventNode = payloadNode.putObject("event");
         putIfHasText(eventNode, "type", event.getType());
@@ -75,7 +80,34 @@ public class SlackSocketModeRunner implements CommandLineRunner {
         slackEventService.acceptEvent(payloadNode);
     }
 
-    private static String resolveEventId(EventsApiPayload<AppMentionEvent> payload, AppMentionEvent event) {
+    void forwardMessageEvent(EventsApiPayload<MessageEvent> payload) {
+        MessageEvent event = payload.getEvent();
+        ObjectNode payloadNode = objectMapper.createObjectNode();
+        payloadNode.put("type", "event_callback");
+        payloadNode.put("event_id", resolveMessageEventId(payload, event));
+
+        ObjectNode eventNode = payloadNode.putObject("event");
+        putIfHasText(eventNode, "type", event.getType());
+        putIfHasText(eventNode, "bot_id", event.getBotId());
+        putIfHasText(eventNode, "user", event.getUser());
+        putIfHasText(eventNode, "text", event.getText());
+        putIfHasText(eventNode, "channel", event.getChannel());
+        putIfHasText(eventNode, "ts", event.getTs());
+        putIfHasText(eventNode, "thread_ts", event.getThreadTs());
+        putIfHasText(eventNode, "channel_type", event.getChannelType());
+
+        slackEventService.acceptEvent(payloadNode);
+    }
+
+    private static String resolveMentionEventId(EventsApiPayload<AppMentionEvent> payload, AppMentionEvent event) {
+        if (StringUtils.hasText(payload.getEventId())) {
+            return payload.getEventId();
+        }
+
+        return StringUtils.hasText(event.getTs()) ? event.getTs() : "";
+    }
+
+    private static String resolveMessageEventId(EventsApiPayload<MessageEvent> payload, MessageEvent event) {
         if (StringUtils.hasText(payload.getEventId())) {
             return payload.getEventId();
         }

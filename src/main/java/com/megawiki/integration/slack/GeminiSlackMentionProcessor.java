@@ -40,7 +40,7 @@ public class GeminiSlackMentionProcessor implements SlackMentionProcessor {
             slackApiClient.postThreadReply(
                     request.channel(),
                     request.threadTs(),
-                    SlackReplyFormatter.geminiReply(result.page(), result.thread())
+                    SlackReplyFormatter.geminiReply(result.page(), result.thread(), result.reusedExistingPage())
             );
         } catch (Exception exception) {
             log.error("Failed to process Slack event {}", request.eventId(), exception);
